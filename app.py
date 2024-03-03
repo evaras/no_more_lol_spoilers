@@ -1,8 +1,9 @@
-from flask import Flask
+from flask import Flask, render_template
 
 import requests
 import json
 
+import pandas as pd
 
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -15,65 +16,116 @@ def read_api_key(file_name):
         api_key = file.read().strip()
     return api_key
 
-
-def get_channel_videos(channel_id, api_key):
-
-    api_key=api_key
+def get_videos_from_youtube_api(api_key):
+    # Credential builder
     youtube=build(
-        'youtube',
-        'v3',
-        developerKey=api_key
-    )
+            'youtube',
+            'v3',
+            developerKey=api_key
+        )
 
-    #Make a request to youtube api
+    # Get channel ID by channel name
+    # Call the search().list() function
+    request = youtube.search().list(
+        part="snippet",
+        q="LVPesLOL",  # Replace with your channel ID
+        maxResults=1,  # You can adjust this value
+        order="date"  # This will sort the videos by date
+    )
+    response = request.execute()
+    channel_id = response['items'][0]['snippet']['channelId']
+    
+    # Get upload list
     request = youtube.channels().list(
-        part='contentDetails',
-        forUsername=channel_id
-    #you can change the channel name here
+        part="contentDetails",
+        id=channel_id
     )
+    response = request.execute()
 
+    # Get the 'Uploads' playlist ID
+    uploads_playlist_id = response['items'][0]['contentDetails']['relatedPlaylists']['uploads']
 
-    #get a response for api
-    response=request.execute()
-    print(response)
-
-    # Retrieve the uploads playlist ID for the given channel
-    playlist_id=response['items'][0]['contentDetails']['relatedPlaylists']['uploads']
-
-    # Retrieve all videos from uploads playlist
-    videos = []
+    # Get the videos in the 'Uploads' playlist (By default they are in descending cronological order)
+    request = youtube.playlistItems().list(
+        part="snippet",
+        playlistId=uploads_playlist_id,
+        maxResults=50  # You can adjust this value
+    )
+    response = request.execute()
+    
+    # Get the videos in the 'Uploads' playlist
     next_page_token = None
+    response_list = []
+    i = 5
+    while i>0:
+        request = youtube.playlistItems().list(
+            part="snippet",
+            playlistId=uploads_playlist_id,
+            maxResults=50,  # You can adjust this value
+            pageToken = next_page_token
+        )
 
-    while True:
-        playlist_items_response=youtube.playlistItems().list(
-                    #part='contentDetails',
-                    part='snippet',
-                    playlistId=playlist_id,
-                    maxResults=50,
-                    pageToken=next_page_token
-        ).execute()
-
-        videos += playlist_items_response['items']
-
-        next_page_token = playlist_items_response.get('nextPageToken')
-
-        if not next_page_token:
+        response = request.execute()
+        response_list.append(response)
+        next_page_token = response.get('nextPageToken')
+        i = i-1
+        if next_page_token is None or i==0:
             break
+    # Obtain all data needed for the latest videos
+    df = pd.DataFrame(columns = ['date', 'match_name', 'map_number', 'league', 'split', 'video_id', 'embed_link'])
+    for response in response_list:
+        # compute the embed code for each video
+        for item in response['items']:
+            title = item['snippet']['title']
+            date = item['snippet']['publishedAt'][0:10]
+            title_split = title.split(' - ')
+            try:
+                if 'VS' not in title_split[0]:
+                    continue
+                match_name = title_split[0]
+                if 'MAPA' in title_split[1]:
+                    map_number = title_split[1]
+                else:
+                    map_number = 'Mapa 1'
 
-    # Extract video URLs
-    video_urls = []
+                if 'MAPA' in title_split[1]:
+                    league = title_split[3]
+                    split = title_split[4]
+                else:
+                    league = title_split[2]
+                    split = title_split[3]
 
-    for video in videos:
-        #video_id = video['contentDetails']['videoId']
-        video_id = video['snippet']['resourceId']['videoId']
-        video_url = f"https://www.youtube.com/watch?v={video_id}"
-        video_title=video['snippet']['title']
-        #video_urls.append(video_url)
-        video_urls.append({'URL':video_url,'Title':video_title})
+                video_id = item['snippet']['resourceId']['videoId']
+                embed_link = f'<iframe width="560" height="315" src="https://www.youtube.com/embed/{video_id}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>'
 
-    #return video_urls
-
-    return video_urls
+                df = pd.concat([df, pd.DataFrame([[date, match_name, map_number, league, split, video_id, embed_link]],
+                                            columns = ['date', 'match_name', 'map_number', 'league', 'split', 'video_id', 'embed_link'])])
+            except:
+                print(title_split)
+    
+    # Clean strange characters when bad formatted titles
+    df['match_name'] = df['match_name'].str.strip()
+    # Sort values
+    df = df.sort_values(by=['date', 'match_name', 'map_number'], ascending=[False, True, True])
+    # Transform to dict format to simplify presentation
+    full_match_info_dict = df.to_dict('records')
+    match_dict = df.reindex(columns=['date', 'match_name']).drop_duplicates().to_dict('records')
+    date_dict = df.reindex(columns=['date']).drop_duplicates().to_dict('records')
+    for match_map in full_match_info_dict:
+        for match in match_dict:
+            if match['date'] == match_map['date'] and match['match_name'] == match_map['match_name']:
+                try:
+                    match['details'].append(match_map)
+                except:
+                    match['details'] = [match_map]
+    for match in match_dict:
+        for date in date_dict:
+            if date['date'] == match['date']:
+                try:
+                    date['matches'].append(match)
+                except:
+                    date['matches'] = [match]
+    return date_dict
 
 
 @app.route('/')
@@ -82,11 +134,10 @@ def main():
     api_key_file = "youtube_api_key"
     api_key = read_api_key(api_key_file)
 
-    videos = get_channel_videos('@LVPward', api_key)
-    for video in videos:
-        print(video)
-        
-    return 'Hello, World!'
+    videos_dict = get_videos_from_youtube_api(api_key)
+
+    return render_template('index.html', videos_dict=videos_dict)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

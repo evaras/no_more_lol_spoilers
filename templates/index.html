@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Collapsible Div</title>
+    <style>
+        .collapsible {
+            background-color: #777;
+            color: white;
+            cursor: pointer;
+            padding: 18px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 15px;
+        }
+
+        .active, .collapsible:hover {
+            background-color: #555;
+        }
+
+        .content {
+            padding: 0 18px;
+            max-height: 0;
+            overflow: visible;
+            transition: max-height 0.2s ease-out;
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Collapsible Div</h2>
+<p>Click on the button to toggle between showing and hiding content.</p>
+
+{% for date in videos_dict %}
+    <button type="button" class="collapsible">Matches uploaded day: {{date.date}}</button>
+    <div class="content">
+    {% for match in date.matches %}
+        <button type="button" class="collapsible">Match name: {{match.match_name}}</button>
+        <div class="content">
+            {% for i in range(1,6) %}
+                <button type="button" class="collapsible">Map {{ i }}</button>
+                <div class="content">
+                    {% if match.details[i-1] is defined %}
+                        {{ match.details[i-1].embed_link|safe }}
+                    {% else %}
+                        'No hay más mapas hoy, si esperas otro mapa busca en el día siguiente, la lvp a veces sube tarde los videos'
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+    </div>
+{% endfor %}
+<button type="button" class="collapsible">Open Collapsible</button>
+<div class="content">
+  <p>Subitem 1</p>
+  <p>Subitem 2</p>
+  <p>Subitem 3</p>
+</div>
+
+<script>
+var coll = document.getElementsByClassName("collapsible");
+var i;
+
+for (i = 0; i < coll.length; i++) {
+  coll[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var content = this.nextElementSibling;
+    if (content.style.maxHeight){
+      content.style.maxHeight = null;
+    } else {
+      content.style.maxHeight = content.scrollHeight + "px";
+    } 
+  });
+}
+</script>
+
+</body>
+</html>
