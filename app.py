@@ -56,7 +56,7 @@ def get_videos_from_youtube_api(api_key):
     # Get the videos in the 'Uploads' playlist
     next_page_token = None
     response_list = []
-    i = 5
+    i = 1
     while i>0:
         request = youtube.playlistItems().list(
             part="snippet",
@@ -125,6 +125,7 @@ def get_videos_from_youtube_api(api_key):
                     date['matches'].append(match)
                 except:
                     date['matches'] = [match]
+    print(date_dict)
     return date_dict
 
 

@@ -1,81 +1,72 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Collapsible Div</title>
-    <style>
-        .collapsible {
-            background-color: #777;
-            color: white;
-            cursor: pointer;
-            padding: 18px;
-            width: 100%;
-            border: none;
-            text-align: left;
-            outline: none;
-            font-size: 15px;
-        }
-
-        .active, .collapsible:hover {
-            background-color: #555;
-        }
-
-        .content {
-            padding: 0 18px;
-            max-height: 0;
-            overflow: visible;
-            transition: max-height 0.2s ease-out;
-            background-color: #f1f1f1;
-        }
-    </style>
+    <title>Collapsible Divs</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 <body>
-
-<h2>Collapsible Div</h2>
-<p>Click on the button to toggle between showing and hiding content.</p>
-
-{% for date in videos_dict %}
-    <button type="button" class="collapsible">Matches uploaded day: {{date.date}}</button>
-    <div class="content">
-    {% for match in date.matches %}
-        <button type="button" class="collapsible">Match name: {{match.match_name}}</button>
-        <div class="content">
-            {% for i in range(1,6) %}
-                <button type="button" class="collapsible">Map {{ i }}</button>
-                <div class="content">
-                    {% if match.details[i-1] is defined %}
-                        {{ match.details[i-1].embed_link|safe }}
-                    {% else %}
-                        'No hay más mapas hoy, si esperas otro mapa busca en el día siguiente, la lvp a veces sube tarde los videos'
-                    {% endif %}
+    <div class="container">
+        <div id="accordion">
+            {% for date in videos_dict %}
+            <div class="card">
+                <div class="card-header" id="headingOne">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne{{date.date}}" aria-expanded="true" aria-controls="collapseOne">
+                            {{date.date}}
+                        </button>
+                    </h5>
                 </div>
+
+                <div id="collapseOne{{date.date}}" class="collapse" aria-labelledby="headingOne" >
+                    <div class="card-body">
+                        <div id="nestedAccordion1">
+                            {% for match in date.matches %}
+                            <div class="card">
+                                <div class="card-header" id="nestedHeading1">
+                                    <h5 class="mb-0">
+                                        <button class="btn btn-link" data-toggle="collapse" data-target="#nestedCollapse1{{match.match_name|replace(' ','_') }}" aria-expanded="true" aria-controls="nestedCollapse1">
+                                            {{match.match_name}}
+                                        </button>
+                                    </h5>
+                                </div>
+
+                                <div id="nestedCollapse1{{match.match_name|replace(' ','_')}}" class="collapse" aria-labelledby="nestedHeading1" >
+                                    <div class="card-body">
+                                        <div id="nestedAccordion2">
+                                            {% for i in range(1,6) %}
+                                            <div class="card">
+                                                <div class="card-header" id="nestedHeading2">
+                                                    <h5 class="mb-0">
+                                                        <button class="btn btn-link" data-toggle="collapse" data-target="#nestedCollapse2{{i}}" aria-expanded="true" aria-controls="nestedCollapse2">
+                                                            Map {{ i }}
+                                                        </button>
+                                                    </h5>
+                                                </div>
+
+                                                <div id="nestedCollapse2{{i}}" class="collapse" aria-labelledby="nestedHeading2" >
+                                                    {% if match.details[i-1] is defined %}
+                                                        {{ match.details[i-1].embed_link|safe }}
+                                                    {% else %}
+                                                        <p>No hay vídeo para este mapa en el día de hoy. Si debería haber mapa comprueba en la fecha del día siguiente por si hubiera habido algún late update de LVP.</p>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
             {% endfor %}
         </div>
-    {% endfor %}
     </div>
-{% endfor %}
-<button type="button" class="collapsible">Open Collapsible</button>
-<div class="content">
-  <p>Subitem 1</p>
-  <p>Subitem 2</p>
-  <p>Subitem 3</p>
-</div>
 
-<script>
-var coll = document.getElementsByClassName("collapsible");
-var i;
-
-for (i = 0; i < coll.length; i++) {
-  coll[i].addEventListener("click", function() {
-    this.classList.toggle("active");
-    var content = this.nextElementSibling;
-    if (content.style.maxHeight){
-      content.style.maxHeight = null;
-    } else {
-      content.style.maxHeight = content.scrollHeight + "px";
-    } 
-  });
-}
-</script>
-
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 </body>
 </html>
