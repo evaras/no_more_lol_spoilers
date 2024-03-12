@@ -1,4 +1,5 @@
 from flask import Flask, render_template
+from flask_caching import Cache
 
 import requests
 import json
@@ -10,6 +11,7 @@ from googleapiclient.errors import HttpError
 
 
 app = Flask(__name__)
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 
 def read_api_key(file_name):
     with open(file_name, 'r') as file:
@@ -17,6 +19,7 @@ def read_api_key(file_name):
     return api_key
 
 def get_videos_from_youtube_api(api_key):
+    #print('Getting videos from YouTube API')
     # Credential builder
     youtube=build(
             'youtube',
@@ -101,7 +104,7 @@ def get_videos_from_youtube_api(api_key):
                 df = pd.concat([df, pd.DataFrame([[date, match_name, map_number, league, split, video_id, embed_link]],
                                             columns = ['date', 'match_name', 'map_number', 'league', 'split', 'video_id', 'embed_link'])])
             except:
-                print(title_split)
+                print(title_split[0])
     
     # Clean strange characters when bad formatted titles
     df['match_name'] = df['match_name'].str.strip()
@@ -125,19 +128,31 @@ def get_videos_from_youtube_api(api_key):
                     date['matches'].append(match)
                 except:
                     date['matches'] = [match]
-    print(date_dict)
+    #print(date_dict)
     return date_dict
 
 
 @app.route('/')
-def main():
+@app.route('/<int:page_number>')
+def main(page_number=1):
     # Get YouTube API key
     api_key_file = "youtube_api_key"
     api_key = read_api_key(api_key_file)
 
-    videos_dict = get_videos_from_youtube_api(api_key)
+    if not cache.get('videos_dict'):
+        print('Getting videos from YouTube API')
+        videos_dict = get_videos_from_youtube_api(api_key)
+        cache.set('videos_dict', videos_dict, timeout=60*60)
+    else:
+        print('Getting videos from cache')
+        videos_dict = cache.get('videos_dict')
+    real_dict_index = (page_number-1)*2
+    if len(videos_dict) / 2 > page_number:
+        has_next = True
 
-    return render_template('index.html', videos_dict=videos_dict)
+    videos_dict = videos_dict[real_dict_index:real_dict_index+2]
+
+    return render_template('index.html', videos_dict=videos_dict, page_number=page_number, has_next=has_next)
 
 
 if __name__ == '__main__':
