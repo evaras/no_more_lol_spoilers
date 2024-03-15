@@ -1,10 +1,4 @@
 runtime: python311
-api_version: 1
-threadsafe: true
-
-libraries:
-- name: Flask
-  version: 3.0.2
 
 handlers:
 - url: /static
