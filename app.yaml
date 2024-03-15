@@ -2,10 +2,14 @@ runtime: python311
 api_version: 1
 threadsafe: true
 
-handlers:
-- url: /.*
-  script: main.app
-
 libraries:
 - name: Flask
   version: 3.0.2
+
+handlers:
+- url: /static
+  static_dir: static/
+- url: /.*
+  script: auto
+
+entrypoint: gunicorn -b :$PORT main:app # specify the entrypoint
