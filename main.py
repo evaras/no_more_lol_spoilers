@@ -147,6 +147,7 @@ def main(page_number=1):
         print('Getting videos from cache')
         videos_dict = cache.get('videos_dict')
     real_dict_index = (page_number-1)*2
+    has_next = False
     if len(videos_dict) / 2 > page_number:
         has_next = True
 
