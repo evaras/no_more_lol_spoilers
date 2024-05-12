@@ -1,0 +1,13 @@
+h1, h2 {
+    color: #e7e1ec;
+    font-family: 'Inter', sans-serif;
+}
+body {
+    background-image: url('images/background.png');
+    background-repeat: repeat;
+    background-size: cover;
+    text-align: center;
+}
+header {
+    background-color: #000000; /* Replace with your desired color */
+}

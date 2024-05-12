@@ -75,7 +75,7 @@ def get_videos_from_youtube_api(api_key):
         if next_page_token is None or i==0:
             break
     # Obtain all data needed for the latest videos
-    df = pd.DataFrame(columns = ['date', 'match_name', 'map_number', 'league', 'split', 'video_id', 'embed_link'])
+    df = pd.DataFrame(columns = ['date', 'match_name', 'map_number', 'video_id', 'embed_link', 'title'])
     for response in response_list:
         # compute the embed code for each video
         for item in response['items']:
@@ -83,33 +83,32 @@ def get_videos_from_youtube_api(api_key):
             date = item['snippet']['publishedAt'][0:10]
             title_split = title.split(' - ')
             try:
+                # Match Name
                 if 'VS' not in title_split[0]:
                     continue
                 match_name = title_split[0]
-                if 'MAPA' in title_split[1]:
-                    map_number = title_split[1]
-                else:
-                    map_number = 'Mapa 1'
 
-                if 'MAPA' in title_split[1]:
-                    league = title_split[3]
-                    split = title_split[4]
-                else:
-                    league = title_split[2]
-                    split = title_split[3]
+                # Map Number
+                for i in title_split:
+                    if 'MAPA' in i:
+                        map_number = i 
+                        break
+                    else:
+                        map_number = 'Other'
+
 
                 video_id = item['snippet']['resourceId']['videoId']
                 embed_link = f'<iframe width="560" height="315" src="https://www.youtube.com/embed/{video_id}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>'
-
-                df = pd.concat([df, pd.DataFrame([[date, match_name, map_number, league, split, video_id, embed_link]],
-                                            columns = ['date', 'match_name', 'map_number', 'league', 'split', 'video_id', 'embed_link'])])
+                df = pd.concat([df, pd.DataFrame([[date, match_name, map_number,  video_id, embed_link, title]],
+                                            columns = ['date', 'match_name', 'map_number', 'video_id', 'embed_link', 'title'])])
             except:
                 print(title_split[0])
-    
+                    
     # Clean strange characters when bad formatted titles
     df['match_name'] = df['match_name'].str.strip()
     # Sort values
     df = df.sort_values(by=['date', 'match_name', 'map_number'], ascending=[False, True, True])
+    #df.to_csv('videos.csv', index=False)
     # Transform to dict format to simplify presentation
     full_match_info_dict = df.to_dict('records')
     match_dict = df.reindex(columns=['date', 'match_name']).drop_duplicates().to_dict('records')

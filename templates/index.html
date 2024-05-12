@@ -4,16 +4,23 @@
     <title>NO MÁS LOL SPOILERS</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">    
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <h1 class="text-center">NO MÁS SPOILERS VIENDO LOL</h1>
-        <h2 class="text-center">Se acabaron los spoilers en el LoL gracias a esta web!</h2>
-        <!-- Add other body elements here -->
-    </div>
-    <div class="container">
+    <header>
+        <div class="container" id="cabecera">
+            <br>
+            <h1 class="text-center">NO MÁS SPOILERS VIENDO LOL</h1>
+            <h2 class="text-center">Se acabaron los spoilers en el LoL gracias a esta web!</h2>
+            <!-- Add other body elements here -->
+            <br>
+        </div>
+    </header>
+    <div class="container" id="cuerpo">
         <div id="accordion">
             {% for date in videos_dict %}
+            <br>
             <div class="card">
                 <div class="card-header" id="headingOne">
                     <h5 class="mb-0">
@@ -41,13 +48,13 @@
                                             <div class="card">
                                                 <div class="card-header" id="nestedHeading2">
                                                     <h5 class="mb-0">
-                                                        <button class="btn btn-link" data-toggle="collapse" data-target="#nestedCollapse2{{i}}" aria-expanded="true" aria-controls="nestedCollapse2">
+                                                        <button class="btn btn-link" data-toggle="collapse" data-target="#{{match.match_name|replace(' ','_')}}nestedCollapse2{{i}}" aria-expanded="true" aria-controls="nestedCollapse2">
                                                             Map {{ i }}
                                                         </button>
                                                     </h5>
                                                 </div>
 
-                                                <div id="nestedCollapse2{{i}}" class="collapse" aria-labelledby="nestedHeading2" >
+                                                <div id="{{match.match_name|replace(' ','_')}}nestedCollapse2{{i}}" class="collapse" aria-labelledby="nestedHeading2" >
                                                     {% if match.details[i-1] is defined %}
                                                         {{ match.details[i-1].embed_link|safe }}
                                                     {% else %}
@@ -67,55 +74,62 @@
             </div>
             {% endfor %}
         </div>
-    </div>
 
-    <nav aria-label="Page navigation">
-        <ul class="pagination justify-content-center">
-            {% if page_number %}
-                {% if page_number > 1 %}
+        <br>
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_number %}
+                    {% if page_number > 1 %}
+                        <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main', page_number=page_number-1) }}">Previous</a>
+                        </li>
+                    {% endif %}
+                {% endif %}
+                <li class="page-item disabled">
+                    <a class="page-link">{{ page_number }}</a>
+                </li>
+                {% if has_next %}
                     <li class="page-item">
-                    <a class="page-link" href="{{ url_for('main', page_number=page_number-1) }}">Previous</a>
+                        <a class="page-link" href="{{ url_for('main', page_number=page_number+1) }}">Next</a>
                     </li>
                 {% endif %}
-            {% endif %}
-            <li class="page-item disabled">
-                <a class="page-link">{{ page_number }}</a>
-            </li>
-            {% if has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="{{ url_for('main', page_number=page_number+1) }}">Next</a>
-                </li>
-            {% endif %}
-            </ul>
-    </nav>
+                </ul>
+        </nav>
 
-    <div class="container">
-        <!-- Your other content here -->
-    
-        <div class="text-right">
-            <button class="btn btn-secondary" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
-                Quieres colaborar?
-            </button>
-            <div class="collapse" id="collapseExample">
-                <div class="card card-body">
-                    <div class="d-flex justify-content-end">
-                        <img src="{{ url_for('static', filename='images/qrcode.png') }}" alt="Paypal QR" class="paypal-qr float-right">
-                        <style>
-                            .paypal-qr {
-                                width: 100px;
-                                height: 100px;
-                            }
-                        </style>
+        <div class="container">
+            <!-- Your other content here -->
+        
+            <div class="text-right">
+                <button class="btn btn-secondary" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                    Quieres colaborar?
+                </button>
+                <div class="collapse" id="collapseExample">
+                    <div class="card card-body">
+                        <div class="d-flex justify-content-end">
+                            <img src="{{ url_for('static', filename='images/qrcode.png') }}" alt="Paypal QR" class="paypal-qr float-right">
+                            <style>
+                                .paypal-qr {
+                                    width: 100px;
+                                    height: 100px;
+                                }
+                            </style>
+                        </div>
+                        <p>Cualquier ayuda es bienvenida :)</p>
+                        <p>Contacto: e.varas@outlook.es</p>
                     </div>
-                    <p>Cualquier ayuda es bienvenida :)</p>
-                    <p>Contacto: e.varas@outlook.es</p>
                 </div>
             </div>
         </div>
     </div>
-
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script>
+        window.onload = function() {
+            var div = document.getElementById('cuerpo'); // replace with your div id
+            var divPosition = div.offsetTop;
+            document.body.style.backgroundPosition = 'center ' + divPosition + 'px';
+        }
+    </script>
 </body>
 </html>
