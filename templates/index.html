@@ -30,13 +30,11 @@
                             <div class="card">
                                 <div class="card-header" id="nestedHeading1">
                                     <h5 class="mb-0">
-                                        <button class="btn btn-link" data-toggle="collapse" data-target="#nestedCollapse1{{match.match_name|replace(' ','_') }}" aria-expanded="true" aria-controls="nestedCollapse1">
-                                            {{match.match_name}}
                                         </button>
                                     </h5>
                                 </div>
 
-                                <div id="nestedCollapse1{{match.match_name|replace(' ','_')}}" class="collapse" aria-labelledby="nestedHeading1" >
+                                <div id="nestedCollapse1{{match.match_name|replace(' ','_')|replace('.','') }}" class="collapse" aria-labelledby="nestedHeading1" >
                                     <div class="card-body">
                                         <div id="nestedAccordion2">
                                             {% for i in range(1,6) %}
