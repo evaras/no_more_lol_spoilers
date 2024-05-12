@@ -36,7 +36,9 @@
                             {% for match in date.matches %}
                             <div class="card">
                                 <div class="card-header" id="nestedHeading1">
-                                    <h5 class="mb-0">
+                                    <h5 class="mb-0">                                        
+                                        <button class="btn btn-link" data-toggle="collapse" data-target="#nestedCollapse1{{match.match_name|replace(' ','_')|replace('.','') }}" aria-expanded="true" aria-controls="nestedCollapse1">
+                                            {{match.match_name}}
                                         </button>
                                     </h5>
                                 </div>
@@ -48,13 +50,13 @@
                                             <div class="card">
                                                 <div class="card-header" id="nestedHeading2">
                                                     <h5 class="mb-0">
-                                                        <button class="btn btn-link" data-toggle="collapse" data-target="#{{match.match_name|replace(' ','_')}}nestedCollapse2{{i}}" aria-expanded="true" aria-controls="nestedCollapse2">
+                                                        <button class="btn btn-link" data-toggle="collapse" data-target="#{{match.match_name|replace(' ','_')|replace('.','') }}nestedCollapse2{{i}}" aria-expanded="true" aria-controls="nestedCollapse2">
                                                             Map {{ i }}
                                                         </button>
                                                     </h5>
                                                 </div>
 
-                                                <div id="{{match.match_name|replace(' ','_')}}nestedCollapse2{{i}}" class="collapse" aria-labelledby="nestedHeading2" >
+                                                <div id="{{match.match_name|replace(' ','_')|replace('.','') }}nestedCollapse2{{i}}" class="collapse" aria-labelledby="nestedHeading2" >
                                                     {% if match.details[i-1] is defined %}
                                                         {{ match.details[i-1].embed_link|safe }}
                                                     {% else %}
